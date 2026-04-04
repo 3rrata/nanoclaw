@@ -31,9 +31,7 @@ const CONFIG_PATH = path.join(
   'email-sanitizer.json',
 );
 
-export function loadSanitizerConfig(
-  pathOverride?: string,
-): SanitizerConfig {
+export function loadSanitizerConfig(pathOverride?: string): SanitizerConfig {
   const filePath = pathOverride ?? CONFIG_PATH;
 
   let raw: string;
@@ -50,7 +48,9 @@ export function loadSanitizerConfig(
     return {
       enabled: parsed.enabled !== false,
       maxBodyLength:
-        typeof parsed.maxBodyLength === 'number' ? parsed.maxBodyLength : DEFAULT_CONFIG.maxBodyLength,
+        typeof parsed.maxBodyLength === 'number'
+          ? parsed.maxBodyLength
+          : DEFAULT_CONFIG.maxBodyLength,
       sensitivity: ['low', 'medium', 'high'].includes(parsed.sensitivity)
         ? parsed.sensitivity
         : DEFAULT_CONFIG.sensitivity,
@@ -77,14 +77,16 @@ const INJECTION_PATTERNS: PatternDef[] = [
   {
     flag: 'instruction_override',
     low: /^(ignore|disregard|forget)\s+(previous|above|all|prior|your)\s+(instructions?|rules?|context|prompt)/im,
-    medium: /\b(ignore|disregard|forget)\s+(previous|above|all|prior|your)\s+(instructions?|rules?|context|prompt)\b/i,
+    medium:
+      /\b(ignore|disregard|forget)\s+(previous|above|all|prior|your)\s+(instructions?|rules?|context|prompt)\b/i,
     high: /(ignore|disregard|forget).{0,10}(instructions?|rules?|context|prompt)/i,
   },
   // Role hijacking
   {
     flag: 'role_hijacking',
     low: /^(you are now|act as|pretend to be|imagine you are)\s+(an?\s+)?(unrestricted|unfiltered|different|new|DAN)/im,
-    medium: /\b(you are now|act as|pretend to be|imagine you are)\s+(an?\s+)?(unrestricted|unfiltered|different|new|DAN)\b/i,
+    medium:
+      /\b(you are now|act as|pretend to be|imagine you are)\s+(an?\s+)?(unrestricted|unfiltered|different|new|DAN)\b/i,
     high: /(you are now|act as|pretend to be|imagine you are).{0,15}(unrestricted|unfiltered|different|new|DAN)/i,
   },
   // Authority impersonation
@@ -105,21 +107,24 @@ const INJECTION_PATTERNS: PatternDef[] = [
   {
     flag: 'exfiltration_vector',
     low: /^(send|email|post|upload)\s+(all|this|the|your)\s+(data|files|content|conversation|history|memory)/im,
-    medium: /\b(send|email|post|upload)\s+(all|this|the|your)\s+(data|files|content|conversation|history|memory)\b/i,
+    medium:
+      /\b(send|email|post|upload)\s+(all|this|the|your)\s+(data|files|content|conversation|history|memory)\b/i,
     high: /(send|email|post|upload).{0,10}(data|files|content|conversation|history|memory)/i,
   },
   // Delimiter injection
   {
     flag: 'delimiter_injection',
     low: /^---\s*(BEGIN|END)\s+(SYSTEM|INSTRUCTION|ADMIN|SECURITY|UNTRUSTED)/im,
-    medium: /---\s*(BEGIN|END)\s+(SYSTEM|INSTRUCTION|ADMIN|SECURITY|UNTRUSTED)/i,
+    medium:
+      /---\s*(BEGIN|END)\s+(SYSTEM|INSTRUCTION|ADMIN|SECURITY|UNTRUSTED)/i,
     high: /---\s*(BEGIN|END)\s+(SYSTEM|INSTRUCTION|ADMIN|SECURITY|UNTRUSTED)/i,
   },
   // Override safety
   {
     flag: 'safety_override',
     low: /^(override|bypass|disable|turn off)\s+(safety|security|guardrails|filters?|restrictions?|protections?)/im,
-    medium: /\b(override|bypass|disable|turn off)\s+(safety|security|guardrails|filters?|restrictions?|protections?)\b/i,
+    medium:
+      /\b(override|bypass|disable|turn off)\s+(safety|security|guardrails|filters?|restrictions?|protections?)\b/i,
     high: /(override|bypass|disable|turn off).{0,10}(safety|security|guardrails|filters?|restrictions?|protections?)/i,
   },
   // Output manipulation
@@ -223,7 +228,10 @@ export function sanitizeEmailBody(
   let wasModified = false;
 
   // Truncate first to limit the surface area for pattern detection
-  const { truncated, wasTruncated } = truncateBody(processed, cfg.maxBodyLength);
+  const { truncated, wasTruncated } = truncateBody(
+    processed,
+    cfg.maxBodyLength,
+  );
   if (wasTruncated) {
     processed = truncated;
     wasModified = true;
