@@ -8,6 +8,8 @@ import os from 'os';
 import path from 'path';
 
 import {
+  ANTHROPIC_API_KEY,
+  ANTHROPIC_BASE_URL,
   CONTAINER_IMAGE,
   CONTAINER_MAX_OUTPUT_SIZE,
   CONTAINER_TIMEOUT,
@@ -15,6 +17,7 @@ import {
   GROUPS_DIR,
   IDLE_TIMEOUT,
   ONECLI_URL,
+  TAVILY_API_KEY,
   TIMEZONE,
 } from './config.js';
 import { resolveGroupFolderPath, resolveGroupIpcPath } from './group-folder.js';
@@ -254,6 +257,11 @@ async function buildContainerArgs(
   // Pass host timezone so container's local time matches the user's
   args.push('-e', `TZ=${TIMEZONE}`);
 
+  // Pass custom Anthropic base URL (e.g. z.ai proxy) if configured
+  if (ANTHROPIC_BASE_URL) {
+    args.push('-e', `ANTHROPIC_BASE_URL=${ANTHROPIC_BASE_URL}`);
+  }
+
   // OneCLI gateway handles credential injection — containers never see real secrets.
   // The gateway intercepts HTTPS traffic and injects API keys or OAuth tokens.
   const onecliApplied = await onecli.applyContainerConfig(args, {
@@ -267,6 +275,22 @@ async function buildContainerArgs(
       { containerName },
       'OneCLI gateway not reachable — container will have no credentials',
     );
+  }
+
+  // If ANTHROPIC_API_KEY is set directly, override OneCLI's placeholder and bypass proxy.
+  // This is needed for non-Anthropic endpoints (like z.ai) that OneCLI's proxy can't tunnel to.
+  // Must come AFTER applyContainerConfig since OneCLI sets ANTHROPIC_API_KEY=placeholder.
+  if (ANTHROPIC_API_KEY) {
+    args.push('-e', `ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}`);
+    // Bypass proxy entirely — ANTHROPIC_API_KEY is set directly so the proxy is redundant.
+    // Using * allows agent-browser and other tools to reach the internet without routing
+    // through the OneCLI gateway (which would timeout for non-API traffic).
+    args.push('-e', 'NO_PROXY=*');
+  }
+
+  // Pass Tavily search API key for lead-finder and other search skills
+  if (TAVILY_API_KEY) {
+    args.push('-e', `TAVILY_API_KEY=${TAVILY_API_KEY}`);
   }
 
   // Runtime-specific args for host gateway resolution
