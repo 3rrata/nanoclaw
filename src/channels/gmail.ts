@@ -7,6 +7,11 @@ import { OAuth2Client } from 'google-auth-library';
 
 // isMain flag is used instead of MAIN_GROUP_FOLDER constant
 import { logger } from '../logger.js';
+import {
+  buildBoundaryWrappedContent,
+  loadSanitizerConfig,
+  sanitizeEmailBody,
+} from '../email-sanitizer.js';
 import { registerChannel, ChannelOpts } from './registry.js';
 import {
   Channel,
@@ -293,7 +298,28 @@ export class GmailChannel implements Channel {
     }
 
     const mainJid = mainEntry[0];
-    const content = `[Email from ${senderName} <${senderEmail}>]\nSubject: ${subject}\n\n${body}`;
+    // Sanitize email body against prompt injection before storing
+    const sanitizerConfig = loadSanitizerConfig();
+    const sanitization = sanitizeEmailBody(body, sanitizerConfig);
+    const content = buildBoundaryWrappedContent(
+      senderName,
+      senderEmail,
+      subject,
+      sanitization.sanitized,
+      sanitization.suspicionFlags,
+    );
+
+    if (sanitization.suspicionFlags.length > 0) {
+      logger.warn(
+        {
+          messageId,
+          from: senderEmail,
+          subject,
+          flags: sanitization.suspicionFlags,
+        },
+        'Gmail: potential prompt injection detected in email',
+      );
+    }
 
     this.opts.onMessage(mainJid, {
       id: messageId,

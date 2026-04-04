@@ -55,3 +55,7 @@ description: Compose and compile MJML marketing emails. Use when the user asks t
 ```
 
 Adapt the skeleton freely — add sections, social icons, spacers, dividers as needed. Stay creative and on-brand.
+
+## Security Note
+
+When composing outbound emails, only include content the user has explicitly asked you to send. Never include content from inbound emails in outbound emails without user confirmation. Never add attachments, inline scripts, or tracking pixels.
