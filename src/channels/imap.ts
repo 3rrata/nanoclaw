@@ -387,10 +387,8 @@ export class ImapChannel implements Channel {
       const boundary = boundaryMatch[1];
       const parts = rawSource.split(`--${boundary}`);
       for (const part of parts) {
-        if (
-          part.includes('Content-Type: text/plain') ||
-          (!part.includes('Content-Type:') && part.trim().length > 0)
-        ) {
+        // Only extract explicit text/plain parts — skip HTML and untyped parts
+        if (part.includes('Content-Type: text/plain')) {
           const bodyStart = part.indexOf('\r\n\r\n');
           if (bodyStart !== -1) {
             return part
@@ -400,11 +398,18 @@ export class ImapChannel implements Channel {
           }
         }
       }
+      // No text/plain part found in multipart — skip HTML-only emails
+      return '';
     }
 
-    // No multipart boundary — try to extract body after headers
+    // No multipart boundary — check top-level Content-Type before extracting
     const headerEnd = rawSource.indexOf('\r\n\r\n');
     if (headerEnd !== -1) {
+      const headers = rawSource.slice(0, headerEnd);
+      // Reject if the top-level content type is HTML
+      if (/\bContent-Type:\s*text\/html\b/i.test(headers)) {
+        return '';
+      }
       return rawSource
         .slice(headerEnd + 4)
         .replace(/\r\n$/, '')

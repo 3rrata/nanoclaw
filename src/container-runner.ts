@@ -189,13 +189,13 @@ function buildVolumeMounts(
     });
   }
 
-  // IMAP/SMTP credentials directory
+  // IMAP/SMTP credentials directory (read-only: container only needs to read config)
   const imapConfigDir = path.join(homeDir, '.config', 'imap-smtp-email');
   if (fs.existsSync(imapConfigDir)) {
     mounts.push({
       hostPath: imapConfigDir,
       containerPath: '/home/node/.config/imap-smtp-email',
-      readonly: false,
+      readonly: true,
     });
   }
 
