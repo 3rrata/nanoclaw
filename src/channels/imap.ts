@@ -269,9 +269,7 @@ export class ImapChannel implements Channel {
     }
   }
 
-  private async processMessage(
-    message: FetchMessageObject,
-  ): Promise<void> {
+  private async processMessage(message: FetchMessageObject): Promise<void> {
     const uid = String(message.uid);
     if (this.processedUids.has(uid)) return;
     this.processedUids.add(uid);
@@ -383,9 +381,7 @@ export class ImapChannel implements Channel {
 
   private extractTextBody(rawSource: string): string {
     // Simple MIME text/plain extraction
-    const boundaryMatch = rawSource.match(
-      /boundary="?([^"\r\n]+)"?/i,
-    );
+    const boundaryMatch = rawSource.match(/boundary="?([^"\r\n]+)"?/i);
 
     if (boundaryMatch) {
       const boundary = boundaryMatch[1];
@@ -409,7 +405,10 @@ export class ImapChannel implements Channel {
     // No multipart boundary — try to extract body after headers
     const headerEnd = rawSource.indexOf('\r\n\r\n');
     if (headerEnd !== -1) {
-      return rawSource.slice(headerEnd + 4).replace(/\r\n$/, '').trim();
+      return rawSource
+        .slice(headerEnd + 4)
+        .replace(/\r\n$/, '')
+        .trim();
     }
 
     return rawSource.trim();
@@ -419,11 +418,7 @@ export class ImapChannel implements Channel {
 // --- Self-registration ---
 
 registerChannel('imap', (opts: ChannelOpts) => {
-  const configDir = path.join(
-    os.homedir(),
-    '.config',
-    'imap-smtp-email',
-  );
+  const configDir = path.join(os.homedir(), '.config', 'imap-smtp-email');
   const configPath = path.join(configDir, '.env');
 
   const config = loadConfig(configPath);
