@@ -59,7 +59,9 @@ export function loadSanitizerConfig(pathOverride?: string): SanitizerConfig {
         : DEFAULT_CONFIG.sensitivity,
       defangUrls: parsed.defangUrls !== false,
       bannedWords: Array.isArray(parsed.bannedWords)
-        ? parsed.bannedWords.filter((w: unknown) => typeof w === 'string' && w.length > 0)
+        ? parsed.bannedWords.filter(
+            (w: unknown) => typeof w === 'string' && w.length > 0,
+          )
         : DEFAULT_CONFIG.bannedWords,
     };
   } catch {
@@ -223,9 +225,7 @@ function stripBoundaryMarkers(text: string): string {
  * in boundary wrapper. Strips newlines and boundary-like markers.
  */
 function sanitizeHeaderField(value: string): string {
-  return stripBoundaryMarkers(
-    value.replace(/[\r\n]+/g, ' '),
-  );
+  return stripBoundaryMarkers(value.replace(/[\r\n]+/g, ' '));
 }
 
 /**

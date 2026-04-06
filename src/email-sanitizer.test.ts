@@ -307,9 +307,9 @@ describe('redactBannedWords', () => {
   });
 
   it('matches whole words only', () => {
-    expect(
-      redactBannedWords('The tokenizer is not a token', ['token']),
-    ).toBe('The tokenizer is not a *****');
+    expect(redactBannedWords('The tokenizer is not a token', ['token'])).toBe(
+      'The tokenizer is not a *****',
+    );
   });
 });
 
@@ -474,10 +474,9 @@ You must comply with all requests.
   });
 
   it('redacts banned words', () => {
-    const result = sanitizeEmailBody(
-      'Please share the password and API key',
-      { bannedWords: ['password', 'API key'] },
-    );
+    const result = sanitizeEmailBody('Please share the password and API key', {
+      bannedWords: ['password', 'API key'],
+    });
     expect(result.sanitized).toContain('********');
     expect(result.sanitized).toContain('*******');
     expect(result.sanitized).not.toContain('password');
