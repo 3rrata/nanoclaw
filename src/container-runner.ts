@@ -189,6 +189,16 @@ function buildVolumeMounts(
     });
   }
 
+  // IMAP/SMTP credentials directory
+  const imapConfigDir = path.join(homeDir, '.config', 'imap-smtp-email');
+  if (fs.existsSync(imapConfigDir)) {
+    mounts.push({
+      hostPath: imapConfigDir,
+      containerPath: '/home/node/.config/imap-smtp-email',
+      readonly: false,
+    });
+  }
+
   // Per-group IPC namespace: each group gets its own IPC directory
   // This prevents cross-group privilege escalation via IPC
   const groupIpcDir = resolveGroupIpcPath(group.folder);
